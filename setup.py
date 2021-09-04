@@ -39,8 +39,11 @@ setup(
     extras_require={
         "dev": [
             "tox",
+            "tox-pyenv",
+            "coverage",
             "black",
             "sphinx",
+            "wheel",
         ]
     },
     package_data={"": ["README"], f"unicorn.{__library_name__}": ["VERSION",],},
