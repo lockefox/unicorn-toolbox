@@ -9,7 +9,7 @@ This file is used to create the package we'll publish to PyPI.
 
 
 from pathlib import Path
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from codecs import open  # Use a consistent encoding.
 from pathlib import Path
 
@@ -28,7 +28,7 @@ setup(
     description="CLI and python tools for homelab help",
     long_description=__readme__,
     long_description_content_type="text/markdown",
-    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    packages=find_namespace_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     version=__version__,
     install_requires=[
         # Include dependencies here

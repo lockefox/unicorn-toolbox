@@ -1,0 +1,3 @@
+include README.md
+include unicorn/toolbox/VERSION
+include VERSION
