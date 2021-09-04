@@ -54,7 +54,11 @@ setup(
             "VERSION",
         ],
     },
-    entry_points={"console_scripts": []},
+    entry_points={
+        "console_scripts": [
+            f"cloudflare-ddns=unicorn.{__library_name__}.cloudflare:run_cloudflare_DDNS"
+        ]
+    },
     python_requires=">=3.6",
     license="Unlicense",
     author="John Purcell",
