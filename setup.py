@@ -10,7 +10,7 @@ This file is used to create the package we'll publish to PyPI.
 
 from pathlib import Path
 from setuptools import setup, find_namespace_packages
-from codecs import open  # Use a consistent encoding.
+from codecs import open
 from pathlib import Path
 
 __package_name__ = "unicorn-toolbox"
@@ -33,7 +33,6 @@ setup(
     ),
     version=__version__,
     install_requires=[
-        # Include dependencies here
         "plumbum",
         "requests[security]",
         "python-dotenv",
@@ -63,7 +62,6 @@ setup(
     license="Unlicense",
     author="John Purcell",
     author_email="jpurcell.ee@gmail.com",
-    # Use the URL to the github repo.
     url=f"https://github.com/lockefox/{__package_name__}",
     download_url=(
         f"https://github.com/lockefox/"
