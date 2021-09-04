@@ -28,7 +28,9 @@ setup(
     description="CLI and python tools for homelab help",
     long_description=__readme__,
     long_description_content_type="text/markdown",
-    packages=find_namespace_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
+    packages=find_namespace_packages(
+        exclude=["*.tests", "*.tests.*", "tests.*", "tests"]
+    ),
     version=__version__,
     install_requires=[
         # Include dependencies here
@@ -46,10 +48,13 @@ setup(
             "wheel",
         ]
     },
-    package_data={"": ["README"], f"unicorn.{__library_name__}": ["VERSION",],},
-    entry_points={
-        "console_scripts": []
+    package_data={
+        "": ["README"],
+        f"unicorn.{__library_name__}": [
+            "VERSION",
+        ],
     },
+    entry_points={"console_scripts": []},
     python_requires=">=3.6",
     license="Unlicense",
     author="John Purcell",
@@ -57,7 +62,8 @@ setup(
     # Use the URL to the github repo.
     url=f"https://github.com/lockefox/{__package_name__}",
     download_url=(
-        f"https://github.com/lockefox/" f"{__package_name__}/archive/{__version__}.tar.gz"
+        f"https://github.com/lockefox/"
+        f"{__package_name__}/archive/{__version__}.tar.gz"
     ),
     keywords=[
         # TODO

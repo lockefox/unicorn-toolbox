@@ -43,3 +43,12 @@ install-env:
 .PHONY: test-env
 test-env: .python-version
 	pyenv local ${PYENV_LIST}
+
+
+.venv/bin/black:
+	$(WHICH_PIP) install black
+
+BLACK_ARGS =
+.PHONY: black
+black: .venv/bin/black
+	black ${BLACK_ARGS} . 
