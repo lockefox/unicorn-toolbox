@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 -include secret.env 
 PROJECT_NAME = unicorn-toolbox
 VERSION = $(strip $(shell cat VERSION))

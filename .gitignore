@@ -1,6 +1,9 @@
 # OS Files
 .DS_Store
 
+# Secrets
+secret.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -115,6 +118,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+python-version
 
 # Spyder project settings
 .spyderproject
