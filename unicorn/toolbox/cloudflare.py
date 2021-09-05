@@ -6,7 +6,7 @@ CLI tools for cloudflare automation
 .. currentmodule:: unicorn.toolbox.cloudflare
 .. moduleauthor:: John <jpurcell.ee@gmail.com>
 """
-
+import collections
 import os
 
 import CloudFlare
@@ -18,9 +18,7 @@ import dotenv
 from . import __version__
 from . import common
 
-DEFAULT_ENV = os.environ.get("UNICORN_CLOUDFLARE_DDNS_ENV")
-if DEFAULT_ENV:
-    dotenv.load_dotenv(DEFAULT_ENV)
+IP_Type = collections.namedtuple("IP_Type", ["address", "type"])
 
 
 class NoPublicIPFound(Exception):
@@ -31,7 +29,7 @@ class NoPublicIPFound(Exception):
         # TODO: logger/__repr__
 
 
-def my_ip_address(endpoints: list) -> str:
+def my_ip_address(endpoints: list) -> IP_Type:
     """find public IP address
 
     Args:
@@ -42,17 +40,26 @@ def my_ip_address(endpoints: list) -> str:
         NoPublicIPFound: unable to resolve public facing IP
 
     Returns:
-        str: public IP (v4)
+        IP_Type: public IP (v4)
 
     """
     if isinstance(endpoints, str):
+        # Avoid `for str()` yielding character list
         endpoints = [endpoints]
+
+    ip_addr = ""
     for endpoint in endpoints:
         req = requests.get(endpoint)
         req.raise_for_status()
-        if req.text:
-            return req.text.strip()
-    raise NoPublicIPFound(endpoints)
+        ip_addr = req.text.strip()
+        if ip_addr:
+            break
+    if not ip_addr:
+        raise NoPublicIPFound(endpoints)
+
+    if ":" in ip_addr:
+        return IP_Type(ip_addr, "AAAA")
+    return IP_Type(ip_addr, "A")
 
 
 class CloudflareDDNS(common.CommonCLI):
@@ -113,7 +120,23 @@ class CloudflareDDNS(common.CommonCLI):
         cf = CloudFlare.CloudFlare(token=self.cloudflare_token)
 
         zones = cf.zones.get(params={"name": f"{tld.domain}.{tld.suffix}"})
-        print(zones)
+        # print(zones)
+
+        for zone in zones:
+            params = {"name": self.fqdn, "match": "all", "type": "A"}
+            dns_records = cf.zones.dns_records.get(zone["id"], params=params)
+
+            if not dns_records:
+                # dns_record = {
+                #     'name':dns_name,
+                #     'type':ip_address_type,
+                #     'content':ip_address
+                # }
+                # try:
+                #     dns_record = cf.zones.dns_records.post(zone_id, data=dns_record)
+                create_dns_record(
+                    self.fqdn,
+                )
 
 
 def run_cloudflare_DDNS():

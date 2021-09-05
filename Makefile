@@ -28,7 +28,7 @@ dist/$(subst -,_,$(PROJECT_NAME))-$(VERSION)-*.whl: VERSION setup.py
 .PHONY: build
 build: dist/$(PROJECT_NAME)-$(VERSION).tar.gz dist/$(subst -,_,$(PROJECT_NAME))-$(VERSION)-*.whl
 
-TOX_ARGS = 
+TOX_ARGS = -p
 .PHONY: test
 test: test-env
 	tox ${TOX_ARGS}
