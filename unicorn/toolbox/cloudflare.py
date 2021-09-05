@@ -9,11 +9,18 @@ CLI tools for cloudflare automation
 
 import os
 
+import CloudFlare
+import tldextract
 import requests
 from plumbum import cli
+import dotenv
 
 from . import __version__
 from . import common
+
+DEFAULT_ENV = os.environ.get("UNICORN_CLOUDFLARE_DDNS_ENV")
+if DEFAULT_ENV:
+    dotenv.load_dotenv(DEFAULT_ENV)
 
 
 class NoPublicIPFound(Exception):
@@ -68,10 +75,45 @@ class CloudflareDDNS(common.CommonCLI):
         default=["https://api.ipify.org/", "https://ipv4.icanhazip.com/"],
     )
 
+    cloudflare_email = cli.SwitchAttr(
+        "--cloudflare-email",
+        str,
+        help="AUTH: login email for cloudflare",
+        envname="CF_API_EMAIL",
+        # mandatory=True,
+    )
+    cloudflare_token = cli.SwitchAttr(
+        "--cloudflare-token",
+        str,
+        help="AUTH: API token or Globla API Key",
+        envname="CF_API_KEY",
+        # mandatory=True,
+    )
+
+    fqdn = cli.SwitchAttr(
+        "--fqdn",
+        str,
+        help="Cloudflare zone indentifier - Found in Overview tab",
+        envname="UNICORN_FQDN",
+    )
+
+    cloudflare_record_name = cli.SwitchAttr(
+        "--cloudflare-record-name",
+        str,
+        help="Cloudflare record name",
+        envname="UNICORN_CLOUDFLARE_RECORD_NAME",
+    )
+
     def main(self):
         print("Hello world")
         public_ip = my_ip_address(self.public_endpoint)
         print(f"public ip: {public_ip}")
+        tld = tldextract.extract(self.fqdn)
+
+        cf = CloudFlare.CloudFlare(token=self.cloudflare_token)
+
+        zones = cf.zones.get(params={"name": f"{tld.domain}.{tld.suffix}"})
+        print(zones)
 
 
 def run_cloudflare_DDNS():

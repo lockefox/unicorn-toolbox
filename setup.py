@@ -33,6 +33,8 @@ setup(
     ),
     version=__version__,
     install_requires=[
+        "cloudflare",
+        "tldextract",
         "plumbum",
         "requests[security]",
         "python-dotenv",

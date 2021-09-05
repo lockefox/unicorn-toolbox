@@ -52,3 +52,11 @@ BLACK_ARGS =
 .PHONY: black
 black: .venv/bin/black
 	black ${BLACK_ARGS} . 
+
+
+.PHONY: run-cloudflare-ddns
+run-cloudflare-ddns:
+	cloudflare-ddns \
+		--cloudflare-email=${CF_API_EMAIL} \
+		--cloudflare-token=${CF_API_KEY} \
+		--fqdn=${UNICORN_FQDN}
