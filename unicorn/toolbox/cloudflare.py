@@ -19,6 +19,9 @@ from . import __version__
 from . import common
 
 IP_Type = collections.namedtuple("IP_Type", ["address", "type"])
+DNS_Change_Status = collections.namedtuple(
+    "DNS_Change_Status", ["status", "message", "update_required"]
+)  # TODO: class?
 
 
 class NoPublicIPFound(Exception):
@@ -60,6 +63,23 @@ def my_ip_address(endpoints: list) -> IP_Type:
     if ":" in ip_addr:
         return IP_Type(ip_addr, "AAAA")
     return IP_Type(ip_addr, "A")
+
+
+def check_dns_change_status(
+    public_ip: IP_Type, content: str, record: str
+) -> DNS_Change_Status:
+    """Helper to yield decision + logging message
+
+    Args:
+        public_ip (IP_Type): new target IP/type
+        content (str): TODO
+        record (str): TODO
+
+    Returns:
+        DNS_Change_Status: status/message/update_required
+
+    """
+    return DNS_Change_Status("FAKE", "Placeholder", True)
 
 
 def create_dns_record(
@@ -149,14 +169,15 @@ class CloudflareDDNS(common.CommonCLI):
             dns_records = cf.zones.dns_records.get(zone["id"], params=params)
 
             if not dns_records:
-                # dns_record = {
-                #     'name':dns_name,
-                #     'type':ip_address_type,
-                #     'content':ip_address
-                # }
-                # try:
-                #     dns_record = cf.zones.dns_records.post(zone_id, data=dns_record)
                 create_dns_record(cf, zone["id"], self.fqdn, public_ip)
+                continue
+
+            for record in dns_records:
+                status = check_dns_change_status(
+                    public_ip, record["content"], record["type"]
+                )
+                if status.update_required is False:
+                    continue
 
 
 def run_cloudflare_DDNS():
