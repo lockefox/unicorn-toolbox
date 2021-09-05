@@ -62,6 +62,28 @@ def my_ip_address(endpoints: list) -> IP_Type:
     return IP_Type(ip_addr, "A")
 
 
+def create_dns_record(
+    cf: CloudFlare.CloudFlare, zone_id: str, fqdn: str, public_ip: IP_Type
+) -> list:
+    """creates new DNS record on cloudflare if one does not already exist
+
+    Args:
+        cf (CloudFlare.CloudFlare): CloudFlare API object
+        zone_id (str): which zone to apply config to
+        fqdn (str): fqdn of entry to be added
+        public_ip (IP_Type): tuple with IP/type to create record
+
+    Returns:
+        list: return info from cf.put() command
+
+    Raises:
+        CloudFlare.exceptions.CloudFlareAPIError
+    """
+    dns_record = {"name": fqdn, "type": public_ip.type, "content": public_ip.address}
+    dns_record = cf.zones.dns_records.post(zone_id, data=dns_record)
+    return dns_record
+
+
 class CloudflareDDNS(common.CommonCLI):
     """Updates Cloudflare DNS entries around a dynamically switching local IP address
 
@@ -134,9 +156,7 @@ class CloudflareDDNS(common.CommonCLI):
                 # }
                 # try:
                 #     dns_record = cf.zones.dns_records.post(zone_id, data=dns_record)
-                create_dns_record(
-                    self.fqdn,
-                )
+                create_dns_record(cf, zone["id"], self.fqdn, public_ip)
 
 
 def run_cloudflare_DDNS():
