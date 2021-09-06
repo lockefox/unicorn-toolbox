@@ -79,7 +79,25 @@ def check_dns_change_status(
         DNS_Change_Status: status/message/update_required
 
     """
-    return DNS_Change_Status("FAKE", "Placeholder", True)
+    supported_types = ["A", "AAAA"]
+    if public_ip.type not in supported_types:
+        return DNS_Change_Status(
+            "Invalid Type",
+            f"Only support the following records: {supported_types}",
+            False,
+        )
+    if public_ip.type != record:
+        return DNS_Change_Status(
+            "Unmatched Types",
+            f"Previous record:{record} current record:{public_ip.type}",
+            False,
+        )
+    if public_ip.address == content:
+        return DNS_Change_Status(
+            "No Update", f"Remote IP matches Local IP: {public_ip.adddress}", False
+        )
+
+    return DNS_Change_Status("Update", "No Skip case found", True)
 
 
 def create_dns_record(
@@ -98,9 +116,39 @@ def create_dns_record(
 
     Raises:
         CloudFlare.exceptions.CloudFlareAPIError
+
     """
     dns_record = {"name": fqdn, "type": public_ip.type, "content": public_ip.address}
     dns_record = cf.zones.dns_records.post(zone_id, data=dns_record)
+    return dns_record
+
+
+def update_dns_record(
+    cf: CloudFlare.CloudFlare, zone_id: str, fqdn: str, public_ip: IP_Type, record: dict
+) -> list:
+    """Updates existing DNS record on cloudflare
+
+    Args:
+        cf (CloudFlare.CloudFlare): CloudFlare API object
+        zone_id (str): which zone to apply config to
+        fqdn (str): fqdn of entry to be added
+        public_ip (IP_Type): tuple with IP/type to update record
+        record (dict): existing cf record
+
+    Returns:
+        list: return info from cf.put() command
+
+    Raises:
+        CloudFlare.exceptions.CloudFlareAPIError
+
+    """
+    dns_record = {
+        "name": fqdn,
+        "type": public_ip.type,
+        "content": public_ip.address,
+        "proxied": record["proxied"],
+    }
+    dns_record = cf.zones.dns_records.put(zone_id, record["id"], data=dns_record)
     return dns_record
 
 
@@ -108,6 +156,7 @@ class CloudflareDDNS(common.CommonCLI):
     """Updates Cloudflare DNS entries around a dynamically switching local IP address
 
     Adapted from: https://github.com/K0p1-Git/cloudflare-ddns-updater
+    Adapted from: https://github.com/cloudflare/python-cloudflare/blob/master/examples/example_update_dynamic_dns.py
     By Way of: https://learn.networkchuck.com/courses/take/ad-free-youtube-videos/lessons/26055468-ddns-on-a-raspberry-pi-using-the-cloudflare-api-dynamic-dns
 
     """
@@ -169,7 +218,9 @@ class CloudflareDDNS(common.CommonCLI):
             dns_records = cf.zones.dns_records.get(zone["id"], params=params)
 
             if not dns_records:
-                create_dns_record(cf, zone["id"], self.fqdn, public_ip)
+                print(f"creating new DNS record: {self.fqdn}:{public_ip.address}")
+                result = create_dns_record(cf, zone["id"], self.fqdn, public_ip)
+                print(f"--create_dns_record: {result}")
                 continue
 
             for record in dns_records:
@@ -177,7 +228,12 @@ class CloudflareDDNS(common.CommonCLI):
                     public_ip, record["content"], record["type"]
                 )
                 if status.update_required is False:
+                    print(f"SKIPPING: {status.message}")
                     continue
+
+                print(f"updating DNS record: {self.fqdn}:{public_ip} {record}")
+                result = update_dns_record(cf, zone["id"], self.fqdn, public_ip, record)
+                print(f"--update_dns_record: {result}")
 
 
 def run_cloudflare_DDNS():
