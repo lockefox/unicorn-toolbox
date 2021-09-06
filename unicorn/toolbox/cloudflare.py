@@ -94,7 +94,7 @@ def check_dns_change_status(
         )
     if public_ip.address == content:
         return DNS_Change_Status(
-            "No Update", f"Remote IP matches Local IP: {public_ip.adddress}", False
+            "No Update", f"Remote IP matches Local IP: {public_ip.address}", False
         )
 
     return DNS_Change_Status("Update", "No Skip case found", True)
@@ -152,17 +152,8 @@ def update_dns_record(
     return dns_record
 
 
-class CloudflareDDNS(common.CommonCLI):
-    """Updates Cloudflare DNS entries around a dynamically switching local IP address
-
-    Adapted from: https://github.com/K0p1-Git/cloudflare-ddns-updater
-    Adapted from: https://github.com/cloudflare/python-cloudflare/blob/master/examples/example_update_dynamic_dns.py
-    By Way of: https://learn.networkchuck.com/courses/take/ad-free-youtube-videos/lessons/26055468-ddns-on-a-raspberry-pi-using-the-cloudflare-api-dynamic-dns
-
-    """
-
-    PROGNAME = "cloudflare-ddns"
-    VERSION = __version__
+class CloudflareCLI(common.CommonCLI):
+    """parent class to hold args"""
 
     public_endpoint = cli.SwitchAttr(
         "--public-endpoint",
@@ -202,6 +193,19 @@ class CloudflareDDNS(common.CommonCLI):
         envname="UNICORN_CLOUDFLARE_RECORD_NAME",
     )
 
+
+class CloudflareDDNS(CloudflareCLI):
+    """Updates Cloudflare DNS entries around a dynamically switching local IP address
+
+    Adapted from: https://github.com/K0p1-Git/cloudflare-ddns-updater
+    Adapted from: https://github.com/cloudflare/python-cloudflare/blob/master/examples/example_update_dynamic_dns.py
+    By Way of: https://learn.networkchuck.com/courses/take/ad-free-youtube-videos/lessons/26055468-ddns-on-a-raspberry-pi-using-the-cloudflare-api-dynamic-dns
+
+    """
+
+    PROGNAME = "cf-ddns"
+    VERSION = __version__
+
     def main(self):
         print("Hello world")
         public_ip = my_ip_address(self.public_endpoint)
@@ -236,9 +240,23 @@ class CloudflareDDNS(common.CommonCLI):
                 print(f"--update_dns_record: {result}")
 
 
+class CloudflareDelete(CloudflareCLI):
+    """Removes Cloudflare DNS entries"""
+
+    PROGNAME = "cf-ddns-delete"
+    VERSION = __version__
+
+    def main(self):
+        print("Hello world")
+
+
 def run_cloudflare_DDNS():
     """Hook for entry_points"""
     CloudflareDDNS.run()
+
+
+def delete_cloudflare_dns():
+    """Hook for entry_points"""
 
 
 if __name__ == "__main__":

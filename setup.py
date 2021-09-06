@@ -57,7 +57,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            f"cloudflare-ddns=unicorn.{__library_name__}.cloudflare:run_cloudflare_DDNS"
+            f"cf-ddns=unicorn.{__library_name__}.cloudflare:run_cloudflare_DDNS",
+            f"cf-ddns-delete=unicorn.{__library_name__}.cloudflare:delete_cloudflare_dns",
         ]
     },
     python_requires=">=3.6",

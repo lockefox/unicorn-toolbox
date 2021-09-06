@@ -55,8 +55,8 @@ black: .venv/bin/black
 
 
 .PHONY: run-cloudflare-ddns
-run-cloudflare-ddns:
-	cloudflare-ddns \
+run-cf-ddns:
+	cf-ddns \
 		--cloudflare-email=${CF_API_EMAIL} \
 		--cloudflare-token=${CF_API_KEY} \
 		--fqdn=${UNICORN_FQDN}
