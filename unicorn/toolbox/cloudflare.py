@@ -151,7 +151,24 @@ def update_dns_record(
     dns_record = cf.zones.dns_records.put(zone_id, record["id"], data=dns_record)
     return dns_record
 
+def delete_dns_record(cf: CloudFlare.CloudFlare, zone_id: str,) -> list:
+    """Updates existing DNS record on cloudflare
 
+    Args:
+        cf (CloudFlare.CloudFlare): CloudFlare API object
+        zone_id (str): which zone to apply config to
+        fqdn (str): fqdn of entry to be added
+        public_ip (IP_Type): tuple with IP/type to update record
+        record (dict): existing cf record
+
+    Returns:
+        list: return info from cf.delete() command
+
+    Raises:
+        CloudFlare.exceptions.CloudFlareAPIError
+
+    """
+    pass
 class CloudflareCLI(common.CommonCLI):
     """parent class to hold args"""
 
@@ -194,6 +211,34 @@ class CloudflareCLI(common.CommonCLI):
     )
 
 
+    def get_zones(self, cf: CloudFlare.CloudFlare) -> list:
+        """render zones information
+
+        Args:
+            cf (CloudFlare.CloudFlare):  CloudFlare API object
+
+        Returns:
+            list: list of zones for a given self.fqdn
+
+        """
+        tld = tldextract.extract(self.fqdn)
+        return cf.zones.get(params={"name": f"{tld.domain}.{tld.suffix}"})
+
+    def get_records(self, cf: CloudFlare.CloudFlare, zone_id: str, record_type: str) -> list:
+        """query records from CloudFlare
+
+        Args:
+            cf (CloudFlare.CloudFlare): CloudFlare API object
+            zone_id (str): CloudFlare zone id
+            record_type (str): which record to look up
+
+        Returns:
+            list: list of records from CloudFlare
+
+        """
+        params = {"name": self.fqdn, "match": "all", "type": record_type}
+        return cf.zones.dns_records.get(zone_id, params=params)
+
 class CloudflareDDNS(CloudflareCLI):
     """Updates Cloudflare DNS entries around a dynamically switching local IP address
 
@@ -210,16 +255,13 @@ class CloudflareDDNS(CloudflareCLI):
         print("Hello world")
         public_ip = my_ip_address(self.public_endpoint)
         print(f"public ip: {public_ip}")
-        tld = tldextract.extract(self.fqdn)
 
         cf = CloudFlare.CloudFlare(token=self.cloudflare_token)
 
-        zones = cf.zones.get(params={"name": f"{tld.domain}.{tld.suffix}"})
-        # print(zones)
+        zones = self.get_zones(cf)
 
         for zone in zones:
-            params = {"name": self.fqdn, "match": "all", "type": "A"}
-            dns_records = cf.zones.dns_records.get(zone["id"], params=params)
+            dns_records = self.get_records(cf, zone["id"], public_ip.type)
 
             if not dns_records:
                 print(f"creating new DNS record: {self.fqdn}:{public_ip.address}")
