@@ -54,9 +54,16 @@ black: .venv/bin/black
 	black ${BLACK_ARGS} . 
 
 
-.PHONY: run-cloudflare-ddns
+.PHONY: run-cf-ddns
 run-cf-ddns:
 	cf-ddns \
+		--cloudflare-email=${CF_API_EMAIL} \
+		--cloudflare-token=${CF_API_KEY} \
+		--fqdn=${UNICORN_FQDN}
+
+.PHONY: run-cf-ddns-delete
+run-cf-ddns-delete:
+	cf-ddns-delete \
 		--cloudflare-email=${CF_API_EMAIL} \
 		--cloudflare-token=${CF_API_KEY} \
 		--fqdn=${UNICORN_FQDN}

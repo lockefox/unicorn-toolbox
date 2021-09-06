@@ -151,7 +151,7 @@ def update_dns_record(
     dns_record = cf.zones.dns_records.put(zone_id, record["id"], data=dns_record)
     return dns_record
 
-def delete_dns_record(cf: CloudFlare.CloudFlare, zone_id: str,) -> list:
+def delete_dns_record(cf: CloudFlare.CloudFlare, zone_id: str, record_id) -> list:
     """Updates existing DNS record on cloudflare
 
     Args:
@@ -168,7 +168,9 @@ def delete_dns_record(cf: CloudFlare.CloudFlare, zone_id: str,) -> list:
         CloudFlare.exceptions.CloudFlareAPIError
 
     """
-    pass
+    dns_record = cf.zones.dns_records.delete(zone_id, record_id)
+    return dns_record
+
 class CloudflareCLI(common.CommonCLI):
     """parent class to hold args"""
 
@@ -290,7 +292,19 @@ class CloudflareDelete(CloudflareCLI):
 
     def main(self):
         print("Hello world")
+        public_ip = my_ip_address(self.public_endpoint)
+        print(f"public ip: {public_ip}")
 
+        cf = CloudFlare.CloudFlare(token=self.cloudflare_token)
+
+        zones = self.get_zones(cf)
+
+        for zone in zones:
+            dns_records = self.get_records(cf, zone["id"], public_ip.type)
+
+            for record in dns_records:
+                print(f"Removing record: {self.fqdn}:{record['id']}")
+                result = delete_dns_record(cf, zone["id"], record["id"])
 
 def run_cloudflare_DDNS():
     """Hook for entry_points"""
@@ -299,7 +313,7 @@ def run_cloudflare_DDNS():
 
 def delete_cloudflare_dns():
     """Hook for entry_points"""
-
+    CloudflareDelete.run()
 
 if __name__ == "__main__":
     run_cloudflare_DDNS()
